@@ -1,0 +1,36 @@
+1- Difference between the record and the class?
+\\ Class vs record
+   Normal class
+   Pros:
+        More flexible
+        Mutable if needed
+        Useful when custom behavior/construction is required
+   Cons:
+        More boilerplate: constructor, getters, etc.
+
+   Record
+   Pros:
+       Concise
+       Immutable data carrier
+       Excellent fit for many API DTOs
+   Cons:
+       Less suitable when you intentionally need mutable state or inheritance
+
+@Component = Creates the object automatically. You put it on your class, and Spring says,
+ "Got it, I will build an instance of this class and save it as a Bean."
+
+@Configuration + @Bean = Creates the object manually.
+ You use this when you need custom setup, or when using a library you didn't write, so you code the new Object() yourself inside a configuration method.
+
+@Autowired = Does the Dependency Injection. It looks at the objects Spring already created
+(via @Component or @Configuration) and plugs/injects them exactly where they are needed.
+
+
+
+2- jwt
+JWT
+ ├── Header
+ ├── Payload
+ └── Signature
+
+3-

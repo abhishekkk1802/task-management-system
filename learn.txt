@@ -33,4 +33,24 @@ JWT
  ├── Payload
  └── Signature
 
-3-
+-Header
+
+  Says things like:
+
+  {
+    "alg": "HS256",
+    "typ": "JWT"
+  }
+  Payload
+
+  Contains claims:
+
+  {
+    "sub": "126bdda7-...",
+    "email": "abhishek@gmail.com",
+    "exp": 1780000000
+  }
+  Signature
+
+  Proves the token was signed with our secret.
+

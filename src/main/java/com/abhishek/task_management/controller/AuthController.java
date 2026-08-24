@@ -1,5 +1,6 @@
 package com.abhishek.task_management.controller;
 
+import com.abhishek.task_management.dto.AuthResponse;
 import com.abhishek.task_management.dto.LoginRequest;
 import com.abhishek.task_management.dto.RegisterRequest;
 import com.abhishek.task_management.dto.UserResponse;
@@ -27,7 +28,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public UserResponse login(
+    public AuthResponse login(
             @Valid @RequestBody LoginRequest loginRequest
             ){
         return userService.login(loginRequest);

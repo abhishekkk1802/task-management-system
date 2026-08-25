@@ -4,6 +4,7 @@ import com.abhishek.task_management.dto.CreateTaskRequest;
 import com.abhishek.task_management.dto.TaskResponse;
 import com.abhishek.task_management.dto.UpdateTaskRequest;
 import com.abhishek.task_management.entity.*;
+import com.abhishek.task_management.exception.ResourceNotFoundException;
 import com.abhishek.task_management.repository.ProjectMemberRepository;
 import com.abhishek.task_management.repository.ProjectRepository;
 import com.abhishek.task_management.repository.TaskRepository;
@@ -44,7 +45,7 @@ public class TaskService {
             project = projectRepository
                     .findById(request.projectId())
                     .orElseThrow(() ->
-                            new RuntimeException("Project not found")
+                            new ResourceNotFoundException("Project not found")
                     );
 
             projectMemberRepository.findByProjectIdAndUserId(project.getId(),createdBy.getId())
@@ -61,7 +62,7 @@ public class TaskService {
         if(request.assignedTo()!=null){
             assignedTo = userRepository.findById(request.assignedTo())
                     .orElseThrow(()->
-                            new RuntimeException("Assigned user not found")
+                            new ResourceNotFoundException("Assigned user not found")
                     );
 
             if(project != null){
@@ -110,7 +111,7 @@ public class TaskService {
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() ->
-                        new RuntimeException("Task not found")
+                        new ResourceNotFoundException("Task not found")
                 );
 
         assert currentUser != null;
@@ -135,7 +136,7 @@ public class TaskService {
         // 2. Find the task
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() ->
-                        new RuntimeException("Task not found")
+                        new ResourceNotFoundException("Task not found")
                 );
 
         UUID userId = currentUser.getId();
@@ -175,7 +176,7 @@ public class TaskService {
             targetProject = projectRepository
                     .findById(request.projectId())
                     .orElseThrow(() ->
-                            new RuntimeException("Project not found")
+                            new ResourceNotFoundException("Project not found")
                     );
         }
 
@@ -197,7 +198,7 @@ public class TaskService {
             targetAssignee = userRepository
                     .findById(request.assignedTo())
                     .orElseThrow(() ->
-                            new RuntimeException("Assigned user not found")
+                            new ResourceNotFoundException("Assigned user not found")
                     );
         }
 
@@ -290,7 +291,7 @@ public class TaskService {
 
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() ->
-                        new RuntimeException("Task not found")
+                        new ResourceNotFoundException("Task not found")
                 );
 
         UUID userId = currentUser.getId();
@@ -306,6 +307,8 @@ public class TaskService {
                     "You are not allowed to delete this task"
             );
         }
+
+
 
         taskRepository.delete(task);
     }

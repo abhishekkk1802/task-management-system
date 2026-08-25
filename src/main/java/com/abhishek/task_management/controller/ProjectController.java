@@ -6,8 +6,10 @@ import com.abhishek.task_management.dto.ProjectResponse;
 import com.abhishek.task_management.dto.UpdateProjectRequest;
 import com.abhishek.task_management.service.ProjectService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -51,5 +53,27 @@ public class ProjectController {
             @Valid @RequestBody AddProjectMemberRequest request
     ) {
         projectService.addMember(projectId, request);
+    }
+
+    @DeleteMapping("/{projectId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteProject(
+            @PathVariable UUID projectId
+    ) {
+        projectService.deleteProject(projectId);
+    }
+
+    @GetMapping
+    public List<ProjectResponse> getProjects() {
+        return projectService.getProjects();
+    }
+
+    @DeleteMapping("/{projectId}/members/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void removeMember(
+            @PathVariable UUID projectId,
+            @PathVariable UUID userId
+    ) {
+        projectService.removeMember(projectId, userId);
     }
 }

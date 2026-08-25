@@ -5,6 +5,7 @@ import com.abhishek.task_management.dto.LoginRequest;
 import com.abhishek.task_management.dto.RegisterRequest;
 import com.abhishek.task_management.dto.UserResponse;
 import com.abhishek.task_management.entity.User;
+import com.abhishek.task_management.exception.ConflictException;
 import com.abhishek.task_management.exception.EmailAlreadyExistsException;
 import com.abhishek.task_management.exception.InvalidCredentialException;
 import com.abhishek.task_management.repository.UserRepository;
@@ -29,7 +30,7 @@ public class UserService {
         boolean emailAlreadyPresent = userRepository.existsByEmail(registerRequest.email());
 
         if(emailAlreadyPresent){
-            throw new EmailAlreadyExistsException("email already exists");
+            throw new ConflictException("email already exists");
         }
 
         String encodedPassword = passwordEncoder.encode(registerRequest.password());

@@ -2,6 +2,7 @@ package com.abhishek.task_management.repository;
 
 import com.abhishek.task_management.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,5 +25,13 @@ public interface TaskRepository extends JpaRepository<Task, UUID> {
        )
 """)
     List<Task> findVisibleTasks(@Param("userId") UUID userId);
+
+    @Modifying
+    @Query("""
+    UPDATE Task t
+    SET t.project = null
+    WHERE t.project.id = :projectId
+""")
+    void detachTasksFromProject(@Param("projectId") UUID projectId);
 
 }

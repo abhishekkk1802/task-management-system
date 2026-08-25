@@ -36,6 +36,11 @@ public class ProjectMember {
         // JPA
     }
 
+    @PrePersist
+    protected void onCreate() {
+        joinedDate = LocalDateTime.now();
+    }
+
     public ProjectMember(
             Project project,
             User user,

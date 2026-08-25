@@ -8,15 +8,20 @@ import com.abhishek.task_management.entity.Project;
 import com.abhishek.task_management.entity.ProjectMember;
 import com.abhishek.task_management.entity.ProjectRole;
 import com.abhishek.task_management.entity.User;
+import com.abhishek.task_management.exception.ConflictException;
+import com.abhishek.task_management.exception.ResourceNotFoundException;
 import com.abhishek.task_management.repository.ProjectMemberRepository;
 import com.abhishek.task_management.repository.ProjectRepository;
+import com.abhishek.task_management.repository.TaskRepository;
 import com.abhishek.task_management.repository.UserRepository;
+import jakarta.persistence.Table;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -25,11 +30,13 @@ public class ProjectService {
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
 
-    public ProjectService(ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository, UserRepository userRepository) {
+    public ProjectService(ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository, UserRepository userRepository, TaskRepository taskRepository) {
         this.projectMemberRepository = projectMemberRepository;
         this.projectRepository = projectRepository;
         this.userRepository = userRepository;
+        this.taskRepository = taskRepository;
     }
 
     @Transactional
@@ -138,6 +145,43 @@ public class ProjectService {
     }
 
     @Transactional
+    public void deleteProject(UUID projectId) {
+
+        User currentUser = getCurrentUser();
+
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new RuntimeException("Project not found")
+                );
+
+        ProjectMember member = projectMemberRepository
+                .findByProjectIdAndUserId(
+                        projectId,
+                        currentUser.getId()
+                )
+                .orElseThrow(() ->
+                        new AccessDeniedException(
+                                "You are not a member of this project"
+                        )
+                );
+
+        if (member.getRole() != ProjectRole.OWNER) {
+            throw new AccessDeniedException(
+                    "Only the project owner can delete the project"
+            );
+        }
+
+        // 1. Remove project reference from tasks
+        taskRepository.detachTasksFromProject(projectId);
+
+        // 2. Remove project members
+        projectMemberRepository.deleteAllByProjectId(projectId);
+
+        // 3. Delete project
+        projectRepository.delete(project);
+    }
+
+    @Transactional
     public void addMember(
             UUID projectId,
             AddProjectMemberRequest request
@@ -185,7 +229,7 @@ public class ProjectService {
                 .isPresent();
 
         if (alreadyMember) {
-            throw new RuntimeException(
+            throw new ConflictException(
                     "User is already a member of this project"
             );
         }
@@ -198,6 +242,83 @@ public class ProjectService {
         );
 
         projectMemberRepository.save(member);
+    }
+
+    public List<ProjectResponse> getProjects() {
+
+        User currentUser = getCurrentUser();
+
+        List<ProjectMember> memberships =
+                projectMemberRepository.findByUserId(
+                        currentUser.getId()
+                );
+
+        return memberships.stream()
+                .map(ProjectMember::getProject)
+                .map(project -> new ProjectResponse(
+                        project.getId(),
+                        project.getName(),
+                        project.getDescription(),
+                        project.getCreatedBy().getId(),
+                        project.getCreatedAt(),
+                        project.getUpdatedAt()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public void removeMember(
+            UUID projectId,
+            UUID userId
+    ) {
+        User currentUser = getCurrentUser();
+
+        // 1. Check project exists
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Project not found")
+                );
+
+        // 2. Check requester is a member
+        ProjectMember requester = projectMemberRepository
+                .findByProjectIdAndUserId(
+                        projectId,
+                        currentUser.getId()
+                )
+                .orElseThrow(() ->
+                        new AccessDeniedException(
+                                "You are not a member of this project"
+                        )
+                );
+
+        // 3. Only OWNER can remove members
+        if (requester.getRole() != ProjectRole.OWNER) {
+            throw new AccessDeniedException(
+                    "Only the project owner can remove members"
+            );
+        }
+
+        // 4. Find the member we want to remove
+        ProjectMember memberToRemove = projectMemberRepository
+                .findByProjectIdAndUserId(
+                        projectId,
+                        userId
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "User is not a member of this project"
+                        )
+                );
+
+        // 5. Don't allow owner to remove themselves
+        if (memberToRemove.getRole() == ProjectRole.OWNER) {
+            throw new AccessDeniedException(
+                    "Project owner cannot be removed"
+            );
+        }
+
+        // 6. Remove member
+        projectMemberRepository.delete(memberToRemove);
     }
 
 }

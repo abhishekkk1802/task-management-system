@@ -1,15 +1,15 @@
 package com.abhishek.task_management.service;
 
-import com.abhishek.task_management.dto.AuthResponse;
-import com.abhishek.task_management.dto.LoginRequest;
-import com.abhishek.task_management.dto.RegisterRequest;
-import com.abhishek.task_management.dto.UserResponse;
+import com.abhishek.task_management.dto.*;
 import com.abhishek.task_management.entity.User;
 import com.abhishek.task_management.exception.ConflictException;
 import com.abhishek.task_management.exception.EmailAlreadyExistsException;
 import com.abhishek.task_management.exception.InvalidCredentialException;
 import com.abhishek.task_management.repository.UserRepository;
 import com.abhishek.task_management.security.JWTService;
+import jakarta.transaction.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +24,13 @@ public class UserService {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+    }
+
+    public UserResponse getCurrentUser() {
+
+        User currentUser = getCurrentUserEntity();
+
+        return toResponse(currentUser);
     }
 
     public UserResponse register(RegisterRequest registerRequest){
@@ -76,6 +83,51 @@ public class UserService {
                 userResponse,
                 token
         );
+    }
+
+    @Transactional
+    public UserResponse updateCurrentUser(
+            UpdateProfileRequest request
+    ) {
+
+        User currentUser = getCurrentUserEntity();
+
+        if (userRepository.existsByEmailAndIdNot(
+                request.email(),
+                currentUser.getId()
+        )) {
+            throw new ConflictException(
+                    "Email already exists"
+            );
+        }
+        currentUser.setName(request.name());
+        currentUser.setEmail(request.email());
+
+        User savedUser = userRepository.save(currentUser);
+
+        return toResponse(savedUser);
+    }
+
+    private UserResponse toResponse(User user) {
+
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+    }
+
+    private User getCurrentUserEntity() {
+
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        assert authentication != null;
+        return (User) authentication.getPrincipal();
     }
 
 

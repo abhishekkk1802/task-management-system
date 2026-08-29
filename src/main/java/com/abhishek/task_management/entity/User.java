@@ -1,6 +1,8 @@
 package com.abhishek.task_management.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -69,5 +71,13 @@ public class User {
 
     public String getPasswordHash() {
         return passwordHash;
+    }
+
+    public void setName(@NotBlank String name) {
+        this.name = name;
+    }
+
+    public void setEmail(@NotBlank @Email String email) {
+        this.email = email;
     }
 }

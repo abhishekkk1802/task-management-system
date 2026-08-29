@@ -1,14 +1,14 @@
 package com.abhishek.task_management.service;
 
 import com.abhishek.task_management.dto.CreateTaskRequest;
+import com.abhishek.task_management.dto.TaskFilterRequest;
 import com.abhishek.task_management.dto.TaskResponse;
 import com.abhishek.task_management.dto.UpdateTaskRequest;
 import com.abhishek.task_management.entity.*;
 import com.abhishek.task_management.exception.ResourceNotFoundException;
-import com.abhishek.task_management.repository.ProjectMemberRepository;
-import com.abhishek.task_management.repository.ProjectRepository;
-import com.abhishek.task_management.repository.TaskRepository;
-import com.abhishek.task_management.repository.UserRepository;
+import com.abhishek.task_management.repository.*;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -87,15 +87,82 @@ public class TaskService {
         return toResponse(savedTask);
     }
 
-    public List<TaskResponse> getTasks(){
+//    public List<TaskResponse> getTasks(){
+//
+//        User currentUser = (User) SecurityContextHolder
+//                .getContext()
+//                .getAuthentication()
+//                .getPrincipal();
+//
+//        List<Task> tasks =
+//                taskRepository.findVisibleTasks(currentUser.getId());
+//
+//        return tasks.stream()
+//                .map(this::toResponse)
+//                .toList();
+//    }
 
-        User currentUser = (User) SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
+    public List<TaskResponse> getMyTasks(
+            TaskFilterRequest request
+    ) {
+
+        User currentUser = getCurrentUser();
+
+        Specification<Task> specification =
+                TaskSpecification.filter(
+                        currentUser.getId(),
+                        request.status(),
+                        request.priority(),
+                        request.projectId(),
+                        currentUser.getId(),
+                        request.search()
+                );
+
+        Sort.Direction direction =
+                "desc".equalsIgnoreCase(request.sortDirection())
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
+        String sortBy = getSortField(request.sortBy());
+
+        List<Task> tasks = taskRepository.findAll(
+                specification,
+                Sort.by(direction, sortBy)
+        );
+
+        return tasks.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public List<TaskResponse> getTasks(
+            TaskFilterRequest request
+    ) {
+
+        User currentUser = getCurrentUser();
+
+        Specification<Task> specification =
+                TaskSpecification.filter(
+                        currentUser.getId(),
+                        request.status(),
+                        request.priority(),
+                        request.projectId(),
+                        request.assignedTo(),
+                        request.search()
+                );
+
+        Sort.Direction direction =
+                "desc".equalsIgnoreCase(request.sortDirection())
+                        ? Sort.Direction.DESC
+                        : Sort.Direction.ASC;
+
+        String sortBy = getSortField(request.sortBy());
 
         List<Task> tasks =
-                taskRepository.findVisibleTasks(currentUser.getId());
+                taskRepository.findAll(
+                        specification,
+                        Sort.by(direction,sortBy)
+                );
 
         return tasks.stream()
                 .map(this::toResponse)
@@ -385,6 +452,27 @@ public class TaskService {
                 .getAuthentication();
 
         return (User) authentication.getPrincipal();
+    }
+
+
+    private String getSortField(String sortBy) {
+
+        if (sortBy == null) {
+            return "createdAt";
+        }
+
+        return switch (sortBy) {
+            case "title" -> "title";
+            case "status" -> "status";
+            case "priority" -> "priority";
+            case "dueDate" -> "dueDate";
+            case "createdAt" -> "createdAt";
+            case "updatedAt" -> "updatedAt";
+
+            default -> throw new IllegalArgumentException(
+                    "Invalid sort field: " + sortBy
+            );
+        };
     }
 
 

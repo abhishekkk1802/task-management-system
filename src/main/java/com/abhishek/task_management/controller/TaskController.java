@@ -1,6 +1,7 @@
 package com.abhishek.task_management.controller;
 
 import com.abhishek.task_management.dto.CreateTaskRequest;
+import com.abhishek.task_management.dto.TaskFilterRequest;
 import com.abhishek.task_management.dto.TaskResponse;
 import com.abhishek.task_management.dto.UpdateTaskRequest;
 import com.abhishek.task_management.entity.Task;
@@ -30,9 +31,23 @@ public class TaskController {
         return taskService.createTask(request);
     }
 
+//    @GetMapping
+//    public List<TaskResponse> getTasks(){
+//        return taskService.getTasks();
+//    }
+
     @GetMapping
-    public List<TaskResponse> getTasks(){
-        return taskService.getTasks();
+    public List<TaskResponse> getTasks(
+            @ModelAttribute TaskFilterRequest request
+    ) {
+        return taskService.getTasks(request);
+    }
+
+    @GetMapping("/assigned-to-me")
+    public List<TaskResponse> getMyTasks(
+            @ModelAttribute TaskFilterRequest request
+    ) {
+        return taskService.getMyTasks(request);
     }
 
     @GetMapping("/{taskId}")

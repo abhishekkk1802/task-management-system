@@ -501,6 +501,7 @@ spring.jpa.hibernate.ddl-auto=update
 
 Create the PostgreSQL database before starting the application:
 
+
 ```sql
 CREATE DATABASE task_management;
 ```

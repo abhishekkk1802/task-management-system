@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,6 +75,32 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(
                         HttpStatus.CONFLICT.value(),
                         ex.getMessage(),
+                        Map.of()
+                ));
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(
+            ResourceNotFoundException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(
+                        HttpStatus.NOT_FOUND.value(),
+                        ex.getMessage(),
+                        Map.of()
+                ));
+    }
+
+    @ExceptionHandler(FileStorageException.class)
+    public ResponseEntity<ErrorResponse> handleFileStorage(
+            FileStorageException ex
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse(
+                        HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                        "File storage error",
                         Map.of()
                 ));
     }

@@ -4,7 +4,6 @@ import com.abhishek.task_management.security.JwtAuthenticationFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,15 +35,23 @@ public class SecurityConfig {
                         AbstractHttpConfigurer::disable) // Disable CSRF for APIs
                 .authorizeHttpRequests(
                         auth
-                                -> auth.requestMatchers("/api/v1/auth/**","/error")
+                                -> auth.requestMatchers(
+                                        "/api/v1/auth/register",
+                                        "/api/v1/auth/login",
+                                        "/error"
+                                )
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())
                 .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(
-                                authenticationEntryPoint()
-                        )
-                )
+                          exception.authenticationEntryPoint(
+                            (request, response, authException) ->
+                                response.sendError(
+                                        HttpServletResponse.SC_UNAUTHORIZED,
+                                        "Unauthorized"
+                                )
+            )
+    )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

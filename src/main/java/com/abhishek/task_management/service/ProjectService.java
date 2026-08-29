@@ -84,7 +84,7 @@ public class ProjectService {
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(()->
-                        new RuntimeException("Project not found")
+                        new ResourceNotFoundException("Project not found")
                         );
 
         projectMemberRepository.findByProjectIdAndUserId(projectId,currentUser.getId())
@@ -117,7 +117,7 @@ public class ProjectService {
         User currentUser = getCurrentUser();
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(()-> new RuntimeException("project not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("project not found"));
 
         ProjectMember member = projectMemberRepository.findByProjectIdAndUserId(projectId,currentUser.getId())
                 .orElseThrow(()-> new AccessDeniedException("you are not a member of the project"));
@@ -151,7 +151,7 @@ public class ProjectService {
 
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found")
+                        new ResourceNotFoundException("Project not found")
                 );
 
         ProjectMember member = projectMemberRepository
@@ -191,7 +191,7 @@ public class ProjectService {
         // 1. Check that the project exists
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() ->
-                        new RuntimeException("Project not found")
+                        new ResourceNotFoundException("Project not found")
                 );
 
         // 2. Check that the requester is a member
@@ -217,7 +217,7 @@ public class ProjectService {
         User userToAdd = userRepository
                 .findByEmail(request.email())
                 .orElseThrow(() ->
-                        new RuntimeException("User not found")
+                        new ResourceNotFoundException("User not found")
                 );
 
         // 5. Check if already a member

@@ -35,3 +35,12 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Local configuration
+application.properties
+
+# Uploaded files
+uploads/
+
+# Environment / secrets
+.env

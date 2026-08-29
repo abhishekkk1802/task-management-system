@@ -1,5 +1,6 @@
 package com.abhishek.task_management.service;
 
+import com.abhishek.task_management.exception.FileStorageException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,7 +21,7 @@ public class FileStorageService {
         try {
             Files.createDirectories(storageLocation);
         } catch (IOException e) {
-            throw new RuntimeException(
+            throw new FileStorageException(
                     "Could not create upload directory",
                     e
             );
@@ -64,7 +65,7 @@ public class FileStorageService {
 
         } catch (IOException e) {
 
-            throw new RuntimeException(
+            throw new FileStorageException(
                     "Could not store file",
                     e
             );
@@ -81,7 +82,7 @@ public class FileStorageService {
             );
         } catch (IOException e) {
 
-            throw new RuntimeException(
+            throw new FileStorageException(
                     "Could not delete file",
                     e
             );

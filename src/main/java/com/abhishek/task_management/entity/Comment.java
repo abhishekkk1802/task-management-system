@@ -35,11 +35,11 @@ public class Comment {
     public Comment(
             String content,
             Task task,
-            User user
+            User createdBy
     ) {
         this.content = content;
         this.task = task;
-        this.createdBy = user;
+        this.createdBy = createdBy;
     }
 
     @PrePersist
@@ -66,10 +66,6 @@ public class Comment {
         return task;
     }
 
-    public User getUser() {
-        return createdBy;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -80,5 +76,9 @@ public class Comment {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public User getCreatedBy() {
+        return createdBy;
     }
 }
